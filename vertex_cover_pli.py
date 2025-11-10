@@ -1,5 +1,45 @@
 from ortools.linear_solver import pywraplp
 
+def create_goldberg_snark(n: int):
+    if not isinstance(n, int) or n < 3 or n % 2 == 0:
+        raise ValueError("O índice 'n' deve ser um inteiro ímpar maior ou igual a 3.")
+
+    vertices_number = 8 * n
+    edges = []
+
+    for i in range(n):
+
+        next_i = (i + 1) % n
+
+        # s_i = i
+        # t_i = i + n
+        # z_i = i + 2*n
+        # v_i = i + 3*n
+        # w_i = i + 4*n
+        # x_i = i + 5*n
+        # y_i = i + 6*n
+        # u_i = i + 7*n
+
+        edges.append((i, i + n)) # (s_i, t_i)
+        edges.append((i + n, next_i)) # (t_i, s_{i+1})
+
+        edges.append((i + 2*n, i + 3*n)) # (z_i, v_i)
+        edges.append((i + 4*n, i + 3*n)) # (w_i, v_i)
+
+        edges.append((i + 5*n, i + 6*n)) # (x_i, y_i)
+        edges.append((i + 6*n, next_i + 5*n)) # (y_i, x_{i+1})
+
+        edges.append((i + 7*n, next_i + 7*n)) # (u_i, u_{i+1})
+
+        edges.append((i + n, i + 2*n)) # (t_i, z_i)
+        edges.append((i, i + 4*n)) # (s_i, w_i)
+
+        edges.append((i + 2*n, i + 5*n)) # (z_i, x_i)
+        edges.append((i + 4*n, i + 6*n)) # (w_i, y_i)
+        edges.append((i + 3*n, i + 7*n)) # (v_i, u_i)
+
+    return vertices_number, edges
+
 def create_flower_snark(n: int):
     if not isinstance(n, int) or n < 3 or n % 2 == 0:
         raise ValueError("O índice 'n' deve ser um inteiro ímpar maior ou igual a 3.")
@@ -32,10 +72,10 @@ def create_flower_snark(n: int):
 
     return vertices_number, edges
 
-def vertex_cover_solver(n_value: int):
+def vertex_cover_solver(n_value: int, create_graph_func, graph_name: str):
     try:
-        print(f"\nConstruindo o grafo J_{n_value}...")
-        vertices_number, edges = create_flower_snark(n_value)
+        print(f"\nConstruindo o grafo {graph_name}_{n_value}...")
+        vertices_number, edges = create_graph_func(n_value)
         print(f"Grafo criado com {vertices_number} vértices e {len(edges)} arestas.")
 
         print(f"Arestas do grafo: {edges}")
@@ -46,7 +86,7 @@ def vertex_cover_solver(n_value: int):
         return
 
     solver = pywraplp.Solver(
-            f'vertex_cover_J{n_value}',
+            f'vertex_cover_{graph_name}{n_value}',
             pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING
         )
 
@@ -79,11 +119,30 @@ def vertex_cover_solver(n_value: int):
 
 
 if __name__ == '__main__':
-    try:
-        n_input = input("Digite o índice 'n' para o grafo J_n (ímpar, >= 3): ")
-        n = int(n_input)
-        vertex_cover_solver(n)
-    except ValueError:
-        print("Entrada inválida. Por favor, digite um número inteiro.")
-    except Exception as e:
-        print(f"Ocorreu um erro inesperado: {e}")
+    print("Escolha o tipo de grafo Snark para analisar:")
+    print("1: Goldberg Snark")
+    print("2: Flower Snark")
+
+    choice = input("Digite sua escolha (1 ou 2): ")
+
+    graph_func = None
+    graph_name = ""
+
+    if choice == '1':
+        graph_func = create_goldberg_snark
+        graph_name = "Goldberg"
+    elif choice == '2':
+        graph_func = create_flower_snark
+        graph_name = "Flower"
+    else:
+        print("Escolha inválida. Saindo.")
+
+    if graph_func:
+        try:
+            n_input = input(f"Digite o índice 'n' para o grafo {graph_name} (ímpar, >= 3): ")
+            n = int(n_input)
+            vertex_cover_solver(n, graph_func, graph_name)
+        except ValueError:
+            print("Entrada inválida. Por favor, digite um número inteiro.")
+        except Exception as e:
+            print(f"Ocorreu um erro inesperado: {e}")
