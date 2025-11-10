@@ -1,21 +1,21 @@
-# 📊 Projeto: Vertex Cover em Grafos Snark
+# 📊 Vertex Cover on Snark Graphs
 
-Este projeto utiliza Python e a biblioteca Google OR-Tools para modelar e resolver o problema da **Cobertura Mínima por Vértices** (Minimum Vertex Cover) em grafos do tipo Snark.
+This project uses Python and the Google OR-Tools library to model and solve the **Minimum Vertex Cover** problem on Snark graphs.
 
-O script inclui geradores para dois tipos específicos de Snarks:
+The script includes generators for two specific types of Snarks:
 * **Flower Snark (J_n)**
 * **Goldberg Snark**
 
-O solver utiliza Programação Inteira Mista (MIP) para encontrar o menor conjunto de vértices que "cobre" todas as arestas do grafo.
+The solver uses Mixed-Integer Programming (MIP) to find the smallest set of vertices that "covers" every edge in the graph.
 
 ---
 
-## ⚙️ Requisitos
+## ⚙️ Requirements
 
 * Python 3.x
-* Biblioteca Google OR-Tools
+* Google OR-Tools library
 
-Para instalar a dependência necessária, execute:
+To install the necessary dependency, run:
 
 ```bash
 pip install ortools

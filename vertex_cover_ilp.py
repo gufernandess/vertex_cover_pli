@@ -1,8 +1,15 @@
 from ortools.linear_solver import pywraplp
 
+# I begin by forming the “component” of the snark graph.
+
+#  # Then I connect the vertices of the formed component to the successor component.
+
+# I use modulo operations to ensure that vertex indices are within the valid
+# range and return to the initial vertex on the last iteration.
+
 def create_goldberg_snark(n: int):
     if not isinstance(n, int) or n < 3 or n % 2 == 0:
-        raise ValueError("O índice 'n' deve ser um inteiro ímpar maior ou igual a 3.")
+        raise ValueError("The index ‘n’ must be an odd integer greater than or equal to 3.")
 
     vertices_number = 8 * n
     edges = []
@@ -42,24 +49,23 @@ def create_goldberg_snark(n: int):
 
 def create_flower_snark(n: int):
     if not isinstance(n, int) or n < 3 or n % 2 == 0:
-        raise ValueError("O índice 'n' deve ser um inteiro ímpar maior ou igual a 3.")
+        raise ValueError("The index ‘n’ must be an odd integer greater than or equal to 3.")
 
-    vertices_number = 4 * n # O número de vértices de um grafo snark sempre é 4n.
+    vertices_number = 4 * n
     edges = []
 
+    # I begin by forming the “component” of the snark graph.
+
     for i in range(n):
-        # Começo formando o "componente" do grafo snark.
         edges.append((i, i + n))
         edges.append((i, i + 2*n))
         edges.append((i, i + 3*n))
 
-        # Depois ligo os vértices do componente formado ao componente sucessor.
-
-        # Uso operações de módulo para garantir que os índices dos vértices estejam dentro do intervalo válido e retornem ao vértice inicial na última iteração.
 
         edges.append((i + n, ((i + 1) % n) + n))
 
-        # No caso da última iteração, tenho que trocar as coordenadas dos vértices para garantir que o grafo snark seja formado corretamente.
+        # In the case of the last iteration, I have to swap the vertex
+        # coordinates to ensure that the snark graph is formed correctly.
 
         if i == n-1:
             edges.append((i + 2*n, ((i + 1) % n) + 3*n))
@@ -74,15 +80,15 @@ def create_flower_snark(n: int):
 
 def vertex_cover_solver(n_value: int, create_graph_func, graph_name: str):
     try:
-        print(f"\nConstruindo o grafo {graph_name}_{n_value}...")
+        print(f"\nConstructing graph {graph_name}_{n_value}...")
         vertices_number, edges = create_graph_func(n_value)
-        print(f"Grafo criado com {vertices_number} vértices e {len(edges)} arestas.")
+        print(f"Graph created with {vertices_number} vertices and {len(edges)} edges.")
 
-        print(f"Arestas do grafo: {edges}")
+        print(f"Graph edges: {edges}")
 
         print("-" * 60)
     except ValueError as e:
-        print(f"Erro: {e}")
+        print(f"Error: {e}")
         return
 
     solver = pywraplp.Solver(
@@ -90,40 +96,42 @@ def vertex_cover_solver(n_value: int, create_graph_func, graph_name: str):
             pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING
         )
 
-    # Para cada vértice do grafo, associo um label de valor binário que indica se o vértice está na cobertura ou não.
+    # For each vertex in the graph, I assign a binary value label that indicates whether the vertex is in the coverage or not.
 
     x = [solver.IntVar(0, 1, f'x_{i}') for i in range(vertices_number)]
 
-    # Adiciono a restrição de que a soma dos valores dos vértices de uma aresta deve ser maior ou igual a 1, garantindo que pelo menos um dos vértices seja selecionado na cobertura.
+    # I add the restriction that the sum of the values of the vertices of an edge must be greater than or equal to 1, ensuring
+    # that at least one of the vertices is selected in the coverage.
 
     for u, v in edges:
         solver.Add(x[u] + x[v] >= 1)
 
-    # O solver é configurado para minimizar a função objetivo, com o objetivo de encontrar a combinação de vértices que minimiza o tamanho da cobertura e ao mesmo tempo segue a restrição imposta.
+    # The solver is configured to minimize the objective function, with the goal of finding the combination of vertices that
+    # minimizes the size of the coverage while following the imposed constraint.
 
     solver.Minimize(sum(x[i] for i in range(vertices_number)))
 
     status = solver.Solve()
 
     if status == pywraplp.Solver.OPTIMAL:
-        print(f'Tamanho mínimo da cobertura por vértices: {int(solver.Objective().Value())}')
+        print(f'Minimum coverage size per vertex: {int(solver.Objective().Value())}')
 
         selected_vertices = []
         for i in range(vertices_number):
             if x[i].solution_value() == 1:
                 selected_vertices.append(i)
 
-        print(f'Vértices na cobertura (uma das soluções possíveis): {selected_vertices}')
+        print(f'Vertices in the roof (one of the possible solutions): {selected_vertices}')
     else:
-        print('O problema não possui uma solução ótima.')
+        print('The problem does not have an optimal solution.')
 
 
 if __name__ == '__main__':
-    print("Escolha o tipo de grafo Snark para analisar:")
+    print("Select the type of Snark graph to analyze:")
     print("1: Goldberg Snark")
     print("2: Flower Snark")
 
-    choice = input("Digite sua escolha (1 ou 2): ")
+    choice = input("Type your choice (1 or 2): ")
 
     graph_func = None
     graph_name = ""
@@ -135,14 +143,14 @@ if __name__ == '__main__':
         graph_func = create_flower_snark
         graph_name = "Flower"
     else:
-        print("Escolha inválida. Saindo.")
+        print("Invalid choice. Logging out.")
 
     if graph_func:
         try:
-            n_input = input(f"Digite o índice 'n' para o grafo {graph_name} (ímpar, >= 3): ")
+            n_input = input(f"Enter the index ‘n’ for the graph {graph_name}: ")
             n = int(n_input)
             vertex_cover_solver(n, graph_func, graph_name)
         except ValueError:
-            print("Entrada inválida. Por favor, digite um número inteiro.")
+            print("Invalid input. Please enter an integer.")
         except Exception as e:
-            print(f"Ocorreu um erro inesperado: {e}")
+            print(f"An unexpected error has occurred: {e}")
